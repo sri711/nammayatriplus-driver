@@ -300,7 +300,7 @@ const Dashboard = () => {
       {/* Leaderboard */}
       <Card className="shadow-lg">
         <CardHeader className="pb-0 px-6 pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start">
             <div>
               <CardTitle className="flex items-center text-xl font-bold">
                 <Trophy className="h-6 w-6 text-yellow-500 mr-3" />
@@ -316,13 +316,13 @@ const Dashboard = () => {
               <div 
                 key={driver.id}
                 className={cn(
-                  "flex items-center justify-between p-4 rounded-xl transition-all",
+                  "flex items-start justify-between p-4 rounded-xl transition-all",
                   driver.id === mockCurrentDriver.id ? "bg-blue-50 shadow-md" : "hover:bg-gray-50"
                 )}
               >
-                <div className="flex items-center flex-1">
+                <div className="flex items-start">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg mr-4 shadow-inner",
+                    "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg mr-4 shadow-inner flex-shrink-0",
                     driver.rank === 1 ? "bg-yellow-100 text-yellow-700" :
                     driver.rank === 2 ? "bg-gray-100 text-gray-700" :
                     driver.rank === 3 ? "bg-orange-100 text-orange-700" :
@@ -330,8 +330,8 @@ const Dashboard = () => {
                   )}>
                     {driver.rank}
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 text-left">
                       {driver.name}
                       {driver.id === mockCurrentDriver.id && " (You)"}
                     </h4>
@@ -345,7 +345,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                <div className="text-right min-w-[100px]">
+                <div className="text-right flex-shrink-0 ml-4">
                   <div className="font-semibold text-gray-900">{driver.ridesThisMonth}</div>
                   <div className="text-xs text-gray-500 mt-1">Rides this month</div>
                 </div>
