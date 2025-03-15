@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Filter, Navigation, MapPin } from "lucide-react";
@@ -10,14 +9,14 @@ import RideRequestComponent from "@/components/RideRequest";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-
 const RideSelection = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [requests, setRequests] = useState([...mockRideRequests]);
   const [selectedRequest, setSelectedRequest] = useState<RideRequest | null>(null);
   const [showRequestDetails, setShowRequestDetails] = useState(false);
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
-  
   const handleRiderSelect = (rider: Rider) => {
     setSelectedRider(rider);
     const matchedRequest = requests.find(req => req.riderId === rider.id);
@@ -26,30 +25,25 @@ const RideSelection = () => {
       setShowRequestDetails(true);
     }
   };
-  
   const handleAcceptRequest = (requestId: string) => {
     // In a real app, this would call an API to accept the request
     setRequests(requests.filter(req => req.id !== requestId));
     setShowRequestDetails(false);
     toast({
       title: "Ride Accepted!",
-      description: "Navigate to pick up the rider",
+      description: "Navigate to pick up the rider"
     });
     // In a real app, this would navigate to the active ride page
   };
-  
   const handleDeclineRequest = (requestId: string) => {
     setRequests(requests.filter(req => req.id !== requestId));
     setShowRequestDetails(false);
   };
-  
   const handleRequestClick = (request: RideRequest) => {
     setSelectedRequest(request);
     setShowRequestDetails(true);
   };
-  
-  return (
-    <Layout fullWidth className="p-0">
+  return <Layout fullWidth className="p-0">
       <div className="flex flex-col h-screen">
         {/* Header */}
         <div className="bg-white p-4 shadow-sm z-10 flex justify-between items-center">
@@ -59,7 +53,7 @@ const RideSelection = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-lg font-semibold">Find Riders</h1>
+            <h1 className="text-lg font-semibold">Find Rides</h1>
           </div>
           
           <Button variant="outline" size="sm" className="gap-1">
@@ -70,11 +64,7 @@ const RideSelection = () => {
         
         {/* Map Section */}
         <div className="flex-grow relative">
-          <Map 
-            showNearbyRiders={true} 
-            onRiderSelect={handleRiderSelect}
-            className="h-full"
-          />
+          <Map showNearbyRiders={true} onRiderSelect={handleRiderSelect} className="h-full" />
           
           {/* Bottom Card with Requests */}
           <div className="absolute bottom-0 left-0 right-0">
@@ -83,14 +73,8 @@ const RideSelection = () => {
                 <h2 className="font-medium">Nearby Ride Requests</h2>
               </div>
               <CardContent className="p-0 max-h-[250px] overflow-y-auto">
-                {requests.length > 0 ? (
-                  <div className="divide-y">
-                    {requests.map((request) => (
-                      <div 
-                        key={request.id}
-                        className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => handleRequestClick(request)}
-                      >
+                {requests.length > 0 ? <div className="divide-y">
+                    {requests.map(request => <div key={request.id} className="p-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleRequestClick(request)}>
                         <div className="flex justify-between items-start">
                           <div className="flex">
                             <div className="mr-3 flex flex-col items-center">
@@ -108,16 +92,12 @@ const RideSelection = () => {
                             <div className="text-xs text-gray-500 mt-1">{formatDistance(request.estimatedDistance)}</div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-6 text-center">
+                      </div>)}
+                  </div> : <div className="p-6 text-center">
                     <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500">No ride requests nearby</p>
                     <p className="text-sm text-gray-400 mt-1">Try again in a few moments</p>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
@@ -125,19 +105,9 @@ const RideSelection = () => {
       </div>
       
       {/* Request Details Modal */}
-      {showRequestDetails && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <RideRequestComponent
-            request={selectedRequest}
-            onAccept={handleAcceptRequest}
-            onDecline={handleDeclineRequest}
-            onClose={() => setShowRequestDetails(false)}
-            isFullScreen={false}
-          />
-        </div>
-      )}
-    </Layout>
-  );
+      {showRequestDetails && selectedRequest && <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <RideRequestComponent request={selectedRequest} onAccept={handleAcceptRequest} onDecline={handleDeclineRequest} onClose={() => setShowRequestDetails(false)} isFullScreen={false} />
+        </div>}
+    </Layout>;
 };
-
 export default RideSelection;
