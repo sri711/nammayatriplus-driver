@@ -1,4 +1,3 @@
-
 // Driver data
 export interface Driver {
   id: string;
@@ -85,7 +84,7 @@ export interface Ride {
 // Mock current driver
 export const mockCurrentDriver: Driver = {
   id: "d-001",
-  name: "Rajesh Kumar",
+  name: "Jack",
   phoneNumber: "+91 98765 43210",
   rating: 4.8,
   totalRides: 856,
@@ -294,4 +293,57 @@ export const vehicleTypes = [
   { id: "AUTO", name: "Auto Rickshaw" },
   { id: "BIKE", name: "Bike" },
   { id: "CAR", name: "Car" },
+];
+
+// Leaderboard data
+export interface LeaderboardDriver {
+  id: string;
+  name: string;
+  ridesCompleted: number;
+  rating: number;
+  ridesThisMonth: number;
+  rank: number;
+}
+
+export const mockLeaderboard: LeaderboardDriver[] = [
+  {
+    id: "d-005",
+    name: "Rahul Singh",
+    ridesCompleted: 892,
+    rating: 4.9,
+    ridesThisMonth: 142,
+    rank: 1
+  },
+  {
+    id: "d-008",
+    name: "Deepak Verma",
+    ridesCompleted: 878,
+    rating: 4.8,
+    ridesThisMonth: 138,
+    rank: 2
+  },
+  {
+    id: "d-001",
+    name: "Jack",
+    ridesCompleted: 856,
+    rating: 4.8,
+    ridesThisMonth: 125,
+    rank: 3
+  },
+  {
+    id: "d-012",
+    name: "Ankit Kumar",
+    ridesCompleted: 845,
+    rating: 4.7,
+    ridesThisMonth: 118,
+    rank: 4
+  },
+  {
+    id: "d-015",
+    name: "Vikram Patel",
+    ridesCompleted: 832,
+    rating: 4.7,
+    ridesThisMonth: 112,
+    rank: 5
+  }
 ];

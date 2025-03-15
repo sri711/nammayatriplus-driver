@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MessageSquare, Bell, Menu, X, MapPin, Home, Car, User, Settings } from "lucide-react";
@@ -19,7 +18,6 @@ const Header = () => {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/ride-selection", label: "Find Rides", icon: MapPin },
-    { path: "/registration", label: "Vehicle", icon: Car },
     { path: "/profile", label: "Profile", icon: User },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
@@ -76,20 +74,22 @@ const Header = () => {
           </div>
           
           <div className="relative flex items-center">
-            <button className="online-status flex items-center py-1.5 rounded-full pl-1 pr-3 bg-gray-100 hover:bg-gray-200 transition-colors">
-              <span className="relative">
-                <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white">
-                  {mockCurrentDriver.name.charAt(0)}
-                </div>
-                <span className={cn(
-                  "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white",
-                  mockCurrentDriver.isOnline ? "bg-driver-success" : "bg-gray-400"
-                )}></span>
-              </span>
-              <span className="ml-2 text-xs font-medium hidden sm:block">
-                {mockCurrentDriver.name.split(" ")[0]}
-              </span>
-            </button>
+            <Link to="/profile">
+              <button className="online-status flex items-center py-1.5 rounded-full pl-1 pr-3 bg-gray-100 hover:bg-gray-200 transition-colors">
+                <span className="relative">
+                  <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                    {mockCurrentDriver.name.charAt(0)}
+                  </div>
+                  <span className={cn(
+                    "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white",
+                    mockCurrentDriver.isOnline ? "bg-driver-success" : "bg-gray-400"
+                  )}></span>
+                </span>
+                <span className="ml-2 text-xs font-medium hidden sm:block">
+                  {mockCurrentDriver.name.split(" ")[0]}
+                </span>
+              </button>
+            </Link>
           </div>
           
           <div className="md:hidden">
