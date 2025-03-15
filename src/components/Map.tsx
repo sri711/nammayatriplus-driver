@@ -1,205 +1,221 @@
-
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Locate, Layers, ZoomIn, ZoomOut, Navigation, MapPin } from "lucide-react";
-import { mockCurrentDriver, mockNearbyRiders, Rider } from "@/data/mockData";
-import { cn } from "@/lib/utils";
-import { calculateDistance } from "@/utils/calculationUtils";
- 
-// This is a mock map component since we can't use actual Google Maps in this sandbox
-// In a real implementation, you would use Google Maps JavaScript API
+import { Loader } from "@googlemaps/js-api-loader";
+import { Rider } from "@/data/mockData";
+
+// Get API key from environment variable
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+interface MapProps {
+  showNearbyRiders?: boolean;
+  destination?: { latitude: number; longitude: number; address: string } | null;
+  onRiderSelect?: ((rider: Rider) => void) | null;
+  className?: string;
+}
+
 const Map = ({ 
   showNearbyRiders = false,
   destination = null,
   onRiderSelect = null,
   className
-}: { 
-  showNearbyRiders?: boolean;
-  destination?: { latitude: number; longitude: number; address: string } | null;
-  onRiderSelect?: ((rider: Rider) => void) | null;
-  className?: string;
-}) => {
+}: MapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
-  const [mapType, setMapType] = useState<"standard" | "satellite">("standard");
-  const [zoomLevel, setZoomLevel] = useState(14);
-  
-  const handleZoomIn = () => {
-    setZoomLevel(Math.min(zoomLevel + 1, 20)); 
-  };
-  
-  const handleZoomOut = () => {
-    setZoomLevel(Math.max(zoomLevel - 1, 1));
-  };
-  
-  const handleMapTypeToggle = () => {
-    setMapType(mapType === "standard" ? "satellite" : "standard");
-  };
-  
-  const handleRiderClick = (rider: Rider) => {
-    setSelectedRider(rider);
-    if (onRiderSelect) {
-      onRiderSelect(rider);
-    }
-  };
-  
-  const handleCenterMap = () => {
-    // In a real implementation, this would center the map on the driver's location
-    console.log("Centering map on current location");
-  };
-  
-  // Sort riders by distance from driver
-  const sortedRiders = [...mockNearbyRiders].sort((a, b) => {
-    const distanceA = calculateDistance(
-      mockCurrentDriver.location.latitude,
-      mockCurrentDriver.location.longitude,
-      a.location.latitude,
-      a.location.longitude
-    );
-    const distanceB = calculateDistance(
-      mockCurrentDriver.location.latitude,
-      mockCurrentDriver.location.longitude,
-      b.location.latitude,
-      b.location.longitude
-    );
-    return distanceA - distanceB;
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 12.9716,  // Default to Bangalore coordinates
+    lng: 77.5946
   });
-  
+
+  // Initialize map when the component mounts
+  useEffect(() => {
+    const initMap = async () => {
+      console.log('Starting map initialization...');
+      
+      if (!GOOGLE_MAPS_API_KEY) {
+        console.error('No API key available');
+        setError('Google Maps API key is missing');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        console.log('Loading Google Maps script...');
+        // Load the Google Maps script
+        const loader = new Loader({
+          apiKey: GOOGLE_MAPS_API_KEY,
+          version: "weekly",
+          libraries: ["places"],
+          language: "en",
+          region: "IN"
+        });
+
+        console.log('Awaiting Google Maps script load...');
+        const google = await loader.load();
+        console.log('Google Maps script loaded successfully');
+        
+        if (!mapRef.current) {
+          throw new Error("Map container not found");
+        }
+
+        // Check if the Google Maps API is loaded correctly
+        if (!google || !google.maps) {
+          throw new Error("Google Maps API failed to load");
+        }
+
+        console.log('Creating map instance...');
+        const mapOptions: google.maps.MapOptions = {
+          center: currentLocation,
+          zoom: 14,
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }]
+            }
+          ],
+          disableDefaultUI: true,
+          zoomControl: true,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: true,
+          gestureHandling: "greedy"
+        };
+
+        const newMap = new google.maps.Map(mapRef.current, mapOptions);
+        console.log('Map instance created');
+        setMap(newMap);
+
+        // Add marker for current location
+        console.log('Adding current location marker...');
+        new google.maps.Marker({
+          position: currentLocation,
+          map: newMap,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: "#247AFF",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 2,
+          },
+          title: "Your Location"
+        });
+
+        // Add destination marker if provided
+        if (destination) {
+          new google.maps.Marker({
+            position: {
+              lat: destination.latitude,
+              lng: destination.longitude
+            },
+            map: newMap,
+            icon: {
+              path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              scale: 6,
+              fillColor: "#FF4444",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            },
+            title: destination.address
+          });
+        }
+
+        console.log("Map initialized successfully");
+      } catch (error) {
+        console.error("Error initializing map:", error);
+        setError(error instanceof Error ? error.message : "Failed to load map");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initMap();
+
+    return () => {
+      if (map) {
+        google.maps.event.clearInstanceListeners(map);
+      }
+    };
+  }, [destination]);
+
+  // Get user's current location
+  useEffect(() => {
+    if (!map) return;
+
+    console.log('Getting user location...');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('User location received:', position.coords);
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setCurrentLocation(newLocation);
+          
+          // Update map center and marker
+          map.setCenter(newLocation);
+          
+          // Clear existing markers
+          map.data.forEach((feature) => {
+            map.data.remove(feature);
+          });
+
+          // Add new marker
+          new google.maps.Marker({
+            position: newLocation,
+            map: map,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#247AFF",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            },
+            title: "Your Location"
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setError("Failed to get your current location. Using default location.");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      setError("Geolocation is not supported by your browser. Using default location.");
+    }
+  }, [map]);
+
   return (
-    <div className={cn("relative rounded-xl overflow-hidden h-[400px]", className)}>
-      {/* Map Container */}
+    <div className={`relative w-full ${className}`}>
       <div 
         ref={mapRef} 
-        className={cn(
-          "w-full h-full", 
-          mapType === "standard" ? "bg-blue-50" : "bg-gray-800"
-        )}
-        style={{
-          backgroundImage: mapType === "standard" 
-            ? "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/77.5946,12.9716,12,0/800x800?access_token=pk.eyJ1IjoiZGVtby1hY2NvdW50IiwiYSI6ImNrZHhjcW4weTB4bjAydGtsNTVmbDYwejMifQ.mLg1i3WXtExaH9ycN9HJ8Q')" 
-            : "url('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/77.5946,12.9716,12,0/800x800?access_token=pk.eyJ1IjoiZGVtby1hY2NvdW50IiwiYSI6ImNrZHhjcW4weTB4bjAydGtsNTVmbDYwejMifQ.mLg1i3WXtExaH9ycN9HJ8Q')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Stylized representation of the driver's position */}
-        <div className="absolute transform -translate-x-1/2 -translate-y-1/2" style={{ left: "50%", top: "50%" }}>
-          <div className="relative">
-            <div className="w-6 h-6 bg-driver-primary rounded-full flex items-center justify-center">
-              <Navigation className="h-3 w-3 text-white" />
-            </div>
-            <div className="absolute top-0 left-0 w-6 h-6 bg-driver-primary rounded-full animate-ping opacity-75"></div>
+        className="absolute inset-0 bg-gray-100"
+        style={{ width: '100%', height: '100%' }}
+      />
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-driver-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
         </div>
-        
-        {/* Destination marker */}
-        {destination && (
-          <div className="absolute transform -translate-x-1/2 -translate-y-1/2" style={{ left: "60%", top: "40%" }}>
-            <div className="flex flex-col items-center">
-              <MapPin className="h-6 w-6 text-red-500" />
-              <div className="bg-white px-2 py-1 rounded text-xs font-medium shadow mt-1 whitespace-nowrap">
-                {destination.address.split(',')[0]}
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Nearby riders */}
-        {showNearbyRiders && sortedRiders.map((rider, index) => {
-          // Position riders at different locations on the map (for demo purposes)
-          const positions = [
-            { left: "40%", top: "45%" },
-            { left: "60%", top: "55%" },
-            { left: "45%", top: "60%" },
-          ];
-          const position = positions[index % positions.length];
-          
-          return (
-            <div 
-              key={rider.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-              style={{ left: position.left, top: position.top }}
-              onClick={() => handleRiderClick(rider)}
-            >
-              <div className="flex flex-col items-center">
-                <div className={cn(
-                  "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white",
-                  selectedRider?.id === rider.id ? "bg-green-500" : "bg-driver-secondary"
-                )}>
-                  {rider.name.charAt(0)}
-                </div>
-                {selectedRider?.id === rider.id && (
-                  <div className="bg-white px-2 py-0.5 rounded text-xs font-medium shadow mt-1">
-                    {calculateDistance(
-                      mockCurrentDriver.location.latitude,
-                      mockCurrentDriver.location.longitude,
-                      rider.location.latitude,
-                      rider.location.longitude
-                    ).toFixed(1)} km
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        
-        {/* Route representation (for when there's a destination) */}
-        {destination && (
-          <div className="absolute left-1/2 top-1/2 w-20 h-20 transform -translate-x-1/2 -translate-y-1/2">
-            <svg className="w-full h-full" viewBox="0 0 100 100">
-              <path 
-                d="M50,50 C50,30 70,40 80,20" 
-                stroke="#247AFF" 
-                strokeWidth="4" 
-                strokeLinecap="round" 
-                strokeDasharray="6,3" 
-                fill="none" 
-              />
-            </svg>
-          </div>
-        )}
-      </div>
-      
-      {/* Map Controls */}
-      <div className="absolute top-4 right-4 flex flex-col space-y-2">
-        <Button 
-          variant="secondary" 
-          size="icon" 
-          className="h-10 w-10 bg-white shadow-md"
-          onClick={handleZoomIn}
-        >
-          <ZoomIn className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="secondary" 
-          size="icon" 
-          className="h-10 w-10 bg-white shadow-md"
-          onClick={handleZoomOut}
-        >
-          <ZoomOut className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="secondary" 
-          size="icon" 
-          className="h-10 w-10 bg-white shadow-md"
-          onClick={handleMapTypeToggle}
-        >
-          <Layers className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="secondary" 
-          size="icon" 
-          className="h-10 w-10 bg-white shadow-md"
-          onClick={handleCenterMap}
-        >
-          <Locate className="h-5 w-5" />
-        </Button>
-      </div>
-      
-      {/* Map Attribution (would be required with real map APIs) */}
-      <div className="absolute bottom-1 right-1 text-[8px] text-gray-500 bg-white bg-opacity-70 px-1 rounded">
-        Map data © Demo Map
-      </div>
+      )}
+      {error && (
+        <div className="absolute bottom-4 left-4 right-4 bg-red-100 text-red-700 px-4 py-2 rounded-lg">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
