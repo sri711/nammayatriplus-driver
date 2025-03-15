@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { Rider } from "@/data/mockData";
+import { Rider, mockClusters } from "@/data/mockData";
 
 // Get API key from environment variable
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -26,6 +26,35 @@ const Map = ({
     lat: 12.9716,  // Default to Bangalore coordinates
     lng: 77.5946
   });
+  const circlesRef = useRef<google.maps.Circle[]>([]);
+
+  // Clear existing circles
+  const clearCircles = () => {
+    circlesRef.current.forEach(circle => circle.setMap(null));
+    circlesRef.current = [];
+  };
+
+  // Add clusters to the map
+  const addClusters = () => {
+    if (!map) return;
+    
+    clearCircles();
+
+    mockClusters.forEach(cluster => {
+      const circle = new google.maps.Circle({
+        strokeColor: cluster.type === 'traffic' ? '#FF0000' : '#0000FF',
+        strokeOpacity: 0.8,
+        strokeWeight: 1,
+        fillColor: cluster.type === 'traffic' ? '#FF0000' : '#0000FF',
+        fillOpacity: 0.15,
+        map,
+        center: cluster.center,
+        radius: cluster.radius
+      });
+      
+      circlesRef.current.push(circle);
+    });
+  };
 
   // Initialize map when the component mounts
   useEffect(() => {
@@ -105,6 +134,9 @@ const Map = ({
           title: "Your Location"
         });
 
+        // Add clusters to the map
+        addClusters();
+
         // Add destination marker if provided
         if (destination) {
           new google.maps.Marker({
@@ -137,6 +169,7 @@ const Map = ({
     initMap();
 
     return () => {
+      clearCircles();
       if (map) {
         google.maps.event.clearInstanceListeners(map);
       }
@@ -180,6 +213,9 @@ const Map = ({
             },
             title: "Your Location"
           });
+
+          // Re-add clusters after updating location
+          addClusters();
         },
         (error) => {
           console.error("Error getting location:", error);

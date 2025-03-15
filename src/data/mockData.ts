@@ -33,6 +33,8 @@ export interface Rider {
     latitude: number;
     longitude: number;
   };
+  preferredLanguage?: string;
+  needsTranslation?: boolean;
 }
 
 // Ride request data
@@ -114,6 +116,8 @@ export const mockNearbyRiders: Rider[] = [
       latitude: 12.9719,
       longitude: 77.5942,
     },
+    preferredLanguage: "hi-IN",
+    needsTranslation: true
   },
   {
     id: "r-002",
@@ -124,6 +128,8 @@ export const mockNearbyRiders: Rider[] = [
       latitude: 12.9721,
       longitude: 77.5948,
     },
+    preferredLanguage: "gu-IN",
+    needsTranslation: true
   },
   {
     id: "r-003",
@@ -134,6 +140,8 @@ export const mockNearbyRiders: Rider[] = [
       latitude: 12.9725,
       longitude: 77.5940,
     },
+    preferredLanguage: "te-IN",
+    needsTranslation: true
   },
 ];
 
@@ -347,3 +355,59 @@ export const mockLeaderboard: LeaderboardDriver[] = [
     rank: 5
   }
 ];
+
+// Cluster data for traffic and rider hotspots
+export interface Cluster {
+  id: string;
+  center: {
+    lat: number;
+    lng: number;
+  };
+  radius: number; // in meters
+  type: 'traffic' | 'riders';
+}
+
+export const mockClusters: Cluster[] = [
+  // Traffic clusters (red)
+  {
+    id: 'traffic-1',
+    center: { lat: 12.9789, lng: 77.5917 }, // Near Majestic area
+    radius: 800,
+    type: 'traffic'
+  },
+  {
+    id: 'traffic-2',
+    center: { lat: 12.9698, lng: 77.7499 }, // Near Whitefield
+    radius: 1000,
+    type: 'traffic'
+  },
+  
+  // Rider clusters (blue)
+  {
+    id: 'riders-1',
+    center: { lat: 12.9854, lng: 77.7065 }, // Near Indiranagar
+    radius: 1200,
+    type: 'riders'
+  },
+  {
+    id: 'riders-2',
+    center: { lat: 12.9121, lng: 77.6446 }, // Near JP Nagar
+    radius: 500,
+    type: 'riders'
+  },
+  {
+    id: 'riders-3',
+    center: { lat: 13.0206, lng: 77.6479 }, // Near Hebbal
+    radius: 800,
+    type: 'riders'
+  }
+];
+
+// High demand location data
+export const highDemandLocation = {
+  area: "Indiranagar",
+  startTime: "18:00",
+  endTime: "23:00",
+  expectedDuration: "5 hours",
+  coordinates: { lat: 12.9854, lng: 77.7065 }
+};

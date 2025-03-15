@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BarChart, Map, Navigation, Clock, AlertCircle, ChevronRight, DollarSign, Trophy, Star } from "lucide-react";
-import { mockCurrentDriver, mockRecentRides, mockWeeklyEarnings, mockLeaderboard } from "@/data/mockData";
+import { mockCurrentDriver, mockRecentRides, mockWeeklyEarnings, mockLeaderboard, highDemandLocation } from "@/data/mockData";
 import { formatPrice, formatDistance, formatDuration } from "@/utils/calculationUtils";
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,16 +77,16 @@ const Dashboard = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
             </div>
             <div>
-              <h3 className="font-semibold text-purple-900 text-lg">High Demand: Lollapalooza Music Festival</h3>
+              <h3 className="font-semibold text-purple-900 text-lg">High Demand: {highDemandLocation.area}</h3>
               <p className="text-purple-800 mt-1">
-                Major surge expected around Palace Grounds (6 PM - 11 PM). High demand and surge pricing likely. Position yourself near Hebbal or Mekhri Circle for maximum rides.
+                Major surge expected around {highDemandLocation.area} ({highDemandLocation.startTime} - {highDemandLocation.endTime}). High demand and surge pricing likely. Position yourself nearby for maximum rides.
               </p>
               <div className="flex items-center mt-2 text-sm text-purple-700">
                 <Clock className="h-4 w-4 mr-1" />
-                <span>Event Time: 4:00 PM - 11:00 PM</span>
+                <span>Expected Duration: {highDemandLocation.expectedDuration}</span>
                 <span className="mx-2">•</span>
                 <Map className="h-4 w-4 mr-1" />
-                <span>Palace Grounds, Bengaluru</span>
+                <span>{highDemandLocation.area}, Bengaluru</span>
               </div>
             </div>
           </div>
@@ -221,6 +221,14 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+      
+      {/* Pro Tips */}
+      <div className="flex items-center space-x-3 bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
+        <Star className="h-5 w-5 text-green-600 flex-shrink-0" />
+        <p className="text-base text-green-800">
+          Pro drivers maintain: route adherence {'>'} 95%, phone distractions {'<'} 0.1/trip, idle time {'<'} 1.5min/trip, ratings {'>'} 4.8/5
+        </p>
+      </div>
       
       {/* Leaderboard */}
       <Card>

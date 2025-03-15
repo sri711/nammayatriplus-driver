@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MessageSquare, Bell, Menu, X, MapPin, Home, Car, User, Settings } from "lucide-react";
+import { MessageSquare, Bell, Menu, X, MapPin, Home, Car, User, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockCurrentDriver } from "@/data/mockData";
+import TranslationModal from "./TranslationModal";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(2);
   const [messages, setMessages] = useState(1);
+  const [showTranslation, setShowTranslation] = useState(false);
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -19,61 +21,67 @@ const Header = () => {
     { path: "/", label: "Home", icon: Home },
     { path: "/ride-selection", label: "Find Rides", icon: MapPin },
     { path: "/profile", label: "Profile", icon: User },
-    { path: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between md:px-6">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-driver-primary font-bold text-2xl">Yatri</span>
-            <span className="bg-driver-primary text-white text-xs rounded-md px-1.5 py-0.5">Driver</span>
-          </Link>
-        </div>
-        
-        <div className="hidden md:flex items-center space-x-1">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
-              className={cn(
-                "flex items-center text-sm px-3 py-2 rounded-md transition-all",
-                isCurrentPath(item.path) 
-                  ? "bg-driver-primary text-white font-medium" 
-                  : "text-driver-text hover:bg-gray-100"
-              )}
-            >
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
+    <>
+      <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
+        <div className="container mx-auto px-4 flex h-16 items-center justify-between md:px-6">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="text-driver-primary font-bold text-2xl">Yatri</span>
+              <span className="bg-driver-primary text-white text-xs rounded-md px-1.5 py-0.5">Driver</span>
             </Link>
-          ))}
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <button className="p-2 rounded-full hover:bg-gray-100">
-              <MessageSquare className="w-5 h-5 text-driver-muted" />
-              {messages > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-driver-primary rounded-full">
-                  {messages}
-                </span>
-              )}
-            </button>
           </div>
           
-          <div className="relative">
-            <button className="p-2 rounded-full hover:bg-gray-100">
-              <Bell className="w-5 h-5 text-driver-muted" />
-              {notifications > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-driver-primary rounded-full">
-                  {notifications}
-                </span>
-              )}
-            </button>
+          <div className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path}
+                className={cn(
+                  "flex items-center text-sm px-3 py-2 rounded-md transition-all",
+                  isCurrentPath(item.path) 
+                    ? "bg-driver-primary text-white font-medium" 
+                    : "text-driver-text hover:bg-gray-100"
+                )}
+              >
+                <item.icon className="w-4 h-4 mr-2" />
+                {item.label}
+              </Link>
+            ))}
           </div>
           
-          <div className="relative flex items-center">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <button className="p-2 rounded-full hover:bg-gray-100">
+                <MessageSquare className="w-5 h-5 text-driver-muted" />
+                {messages > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-driver-primary rounded-full">
+                    {messages}
+                  </span>
+                )}
+              </button>
+            </div>
+            
+            <div className="relative">
+              <button className="p-2 rounded-full hover:bg-gray-100">
+                <Bell className="w-5 h-5 text-driver-muted" />
+                {notifications > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-driver-primary rounded-full">
+                    {notifications}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <button 
+              className="p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setShowTranslation(true)}
+            >
+              <Languages className="w-5 h-5 text-driver-muted" />
+            </button>
+            
             <Link to="/profile">
               <button className="online-status flex items-center py-1.5 rounded-full pl-1 pr-3 bg-gray-100 hover:bg-gray-200 transition-colors">
                 <span className="relative">
@@ -105,8 +113,17 @@ const Header = () => {
             </button>
           </div>
         </div>
-      </div>
-      
+      </header>
+
+      {/* Translation Modal */}
+      {showTranslation && (
+        <div className="fixed inset-0 z-[9999]">
+          <TranslationModal
+            onClose={() => setShowTranslation(false)}
+          />
+        </div>
+      )}
+
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden" onClick={closeMenu}>
@@ -166,7 +183,7 @@ const Header = () => {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
 
